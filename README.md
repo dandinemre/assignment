@@ -4,6 +4,9 @@ This is a sample Java / Maven / Spring Boot (version 2.6.2) application that can
 
 ## How to Run 
 
+There are two different ways to run, standalone or dockerized.
+### Standalone version
+
 This application is packaged as a war which has Tomcat 8 embedded. No Tomcat or JBoss installation is necessary. You run it using the ```java -jar``` command.
 
 * Clone this repository 
@@ -32,6 +35,20 @@ and there you go , you are done . Now you can run project in browser,
 
  http://localhost:8080
 
+###Dockerized
+* Clone this repository
+
+```
+https://github.com/dandinemre/assignment
+```
+* Go to home directory
+* run the following command
+```
+docker-compose up
+```
+and there you go , you are done . Now you can run project in browser,
+
+http://localhost:8080
 
 ## About the backend
 
