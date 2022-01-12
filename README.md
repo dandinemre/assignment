@@ -35,7 +35,7 @@ and there you go , you are done . Now you can run project in browser,
 
  http://localhost:8080
 
-###Dockerized
+### Dockerized
 * Clone this repository
 
 ```
