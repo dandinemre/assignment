@@ -6,6 +6,8 @@ import java.util.Set;
 
 @Entity
 public class Receipt {
+    public Receipt() {
+    }
 
     @Id
     @GeneratedValue

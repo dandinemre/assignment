@@ -9,6 +9,10 @@ import com.crediteuropebank.assignment.service.ReceiptService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,8 +59,17 @@ public class ReceiptServiceImpl implements ReceiptService {
     }
 
     @Override
-    public List<Receipt> findAll() {
-        return receiptRepository.findAll();
+    public List<Receipt> findAll(Integer pageNum, Integer pageSize, String sortBy) {
+        Pageable paging = PageRequest.of(pageNum, pageSize, Sort.by(sortBy));
+        Page<Receipt> pagedResult = receiptRepository.findAll(paging);
+        if(pagedResult.hasContent())
+            return pagedResult.getContent();
+        return new ArrayList<Receipt>();
+    }
+
+
+    public Optional<Receipt> findById(Long receiptId) {
+        return receiptRepository.findById(receiptId);
     }
 
     private Receipt clearFetchedReceiptsIngredients(Receipt fetchedReceipt) {
@@ -94,7 +107,7 @@ public class ReceiptServiceImpl implements ReceiptService {
 
     private Receipt setReceiptsToIngredientsAndInstructions(Receipt receipt) {
         AtomicInteger counter = new AtomicInteger(0);
-
+        receipt.setId(0L);
         receipt.getIngredients().stream().forEach(ingredient -> {
             ingredient.setReceipt(receipt);
             ingredient.setOrder(counter.incrementAndGet());
@@ -105,7 +118,7 @@ public class ReceiptServiceImpl implements ReceiptService {
             instruction.setOrder(counter.incrementAndGet());
         });
         try {
-            Date myDate = receipt.getCreatedDate();
+            Date myDate = new Date();
             SimpleDateFormat sm = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             String strDate = sm.format(myDate);
             Date dt = sm.parse(strDate);

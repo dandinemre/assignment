@@ -1,16 +1,12 @@
 package com.crediteuropebank.assignment;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import com.crediteuropebank.assignment.controller.ReceiptController;
 import com.crediteuropebank.assignment.model.Ingredient;
 import com.crediteuropebank.assignment.model.Instruction;
 import com.crediteuropebank.assignment.model.Receipt;
-import com.crediteuropebank.assignment.service.ReceiptService;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Answers;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Order;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -18,13 +14,19 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+
+
 public class ControllerTestsClass extends  AbstractTest{
     @Override
     @Before
     public void setUp() {
         super.setUp();
     }
+    String testId = "54";
+
     @Test
+    @Order(2)
     public void givenNothing_whenGetReceipt_thenStatus200() throws Exception {
         String uri = "/receipt";
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get(uri)
@@ -37,6 +39,7 @@ public class ControllerTestsClass extends  AbstractTest{
         assertTrue(receiptList.length > 0);
     }
     @Test
+    @Order(1)
     public void givenReceipt_whenCreateReceipt_thenStatus200() throws Exception {
         String uri = "/receipt";
         Receipt receipt = new Receipt();
@@ -66,8 +69,9 @@ public class ControllerTestsClass extends  AbstractTest{
         assertEquals(content, "");
     }
     @Test
+    @Order(4)
     public void givenReceiptAndReceiptId_whenUpdateReceipt_thenStatus200() throws Exception {
-        String uri = "/receipt/1";
+        String uri = "/receipt/"+testId;
         Receipt receipt = new Receipt();
         receipt.setName("Updated test receipt");
         receipt.setVegetarian(false);
@@ -95,13 +99,28 @@ public class ControllerTestsClass extends  AbstractTest{
         assertEquals(content, "");
     }
     @Test
+    @AfterAll
     public void givenReceiptId_whenDeleteReceipt_thenStatus200() throws Exception {
-        String uri = "/receipt/67";
+        String uri = "/receipt/"+testId;
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.delete(uri)).andReturn();
         int status = mvcResult.getResponse().getStatus();
         assertEquals(200, status);
         String content = mvcResult.getResponse().getContentAsString();
         assertEquals(content, "");
+    }
+
+    @Test
+    @Order(3)
+    public void givenReceiptId_whenGetReceipt_thenStatus200() throws Exception {
+        String uri = "/receipt/"+testId;
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get(uri)
+                .accept(MediaType.APPLICATION_JSON_VALUE)).andReturn();
+
+        int status = mvcResult.getResponse().getStatus();
+        assertEquals(200, status);
+        String content = mvcResult.getResponse().getContentAsString();
+        Receipt receipt = super.mapFromJson(content, Receipt.class);
+        assertNotNull(receipt);
     }
 }
 

@@ -1,8 +1,6 @@
 package com.crediteuropebank.assignment;
 
-import com.crediteuropebank.assignment.repository.IngredientRepository;
 import com.crediteuropebank.assignment.repository.InstructionRepository;
-import com.crediteuropebank.assignment.service.impl.IngredientServiceImpl;
 import com.crediteuropebank.assignment.service.impl.InstructionServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;

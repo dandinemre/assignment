@@ -1,9 +1,6 @@
 package com.crediteuropebank.assignment.model;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Entity
 public class Instruction {

@@ -1,0 +1,368 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>Emre Dandin Assignment</title>
+  <link href="../Content/bootstrap.css" rel="stylesheet" />
+
+  <script src="../Scripts/jquery-1.11.0.min.js"></script>
+  <script src="../Scripts/bootstrap.min.js"></script>
+</head>
+
+<body>
+ <input type="hidden" id="id" value="0" />
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12">
+        <h2>Recipe List</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <table id="receiptTable" class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>Edit</th>
+              <th>Name</th>
+              <th>Create Date</th>
+              <th>Vegeterian</th>
+              <th>Portion</th>
+              <th>Ingredients</th>
+              <th>Instructions</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-1">
+        <button type="button" id="previousButton" class="btn btn-primary" onclick="previousClick();">
+          Prev
+        </button>
+      </div>     
+      <div class="col-sm-1">
+        <input type="text" id="pageNum" class="form-control" disabled/>      
+      </div>
+      <div class="col-sm-1">
+        <button type="button" id="nextButton" class="btn btn-primary" onclick="nextClick();">
+          Next
+        </button>
+      </div>
+    </div>
+    <br>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <button type="button" id="addButton" class="btn btn-primary" onclick="addClick();">
+          NEW Receipt
+        </button>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            Recipe Information
+          </div>
+
+          <div class="panel-body">
+            <div class="form-group">
+              <label for="name">
+                Name
+              </label>
+              <input type="text" id="name" class="form-control" maxlength="255"/>
+            </div>           
+
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="vegetarian">
+              <label class="form-check-label" for="vegetarian">Is Vegeterian</label>
+            </div>
+
+            <div class="form-group">
+              <label for="portion">Portion</label>
+              <input type="text" id="portion" class="form-control" maxlength="255" onkeypress='validate(event)'/>
+            </div>
+
+            <div class="form-group">
+              <label for="ingredient">
+                Ingredients
+              </label>
+              <input type="text" id="ingredient" class="form-control"/>
+            </div>
+
+            <div class="form-group">
+              <label for="instructions">Instructions</label>
+              <input type="text" id="instruction" class="form-control"/>
+            </div>
+
+
+          </div>
+          <div class="panel-footer">            
+            <div class="row">
+              <div class="col-xs-12">
+                <button type="button" id="updateButton" class="btn btn-primary" onclick="updateClick();">
+                  Add
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function () {      
+      receiptList();
+    });
+
+    function validate(evt) {
+    var theEvent = evt || window.event;
+
+    // Handle paste
+    if (theEvent.type === 'paste') {
+        key = event.clipboardData.getData('text/plain');
+    } else {
+    // Handle key press
+        var key = theEvent.keyCode || theEvent.which;
+        key = String.fromCharCode(key);
+    }
+    var regex = /[0-9]|\./;
+    if( !regex.test(key) ) {
+      theEvent.returnValue = false;
+      if(theEvent.preventDefault) theEvent.preventDefault();
+    }
+  }
+
+    var Receipt = {
+      id: 0,
+      name: "",
+      createdDate: "",
+      vegetarian: "",
+      portion: 0,
+      ingredients: [],
+      instructions: []
+    }
+
+    function updateClick() {
+      Receipt = new Object();
+      Receipt.id = $("#id").val();
+      Receipt.name = $("#name").val();
+      Receipt.vegetarian = $('#vegetarian').is(':checked');
+      Receipt.portion = $("#portion").val();
+      Receipt.ingredients = [];
+      Receipt.instructions = [];
+
+      const ingredients = $("#ingredient").val();
+      const instructions = $("#instruction").val();
+
+
+      var ingredientsSplit = ingredients.split(";");
+      for (var i = 0; i < ingredientsSplit.length; i++) {
+        var keyValue = ingredientsSplit[i];
+        Receipt.ingredients.push({ content: keyValue });
+      }
+
+
+      var instructionsSplit = instructions.split(";");
+      for (var i = 0; i < instructionsSplit.length; i++) {
+        var keyValue = instructionsSplit[i];
+        Receipt.instructions.push({ content: keyValue });
+      }
+
+
+      if ($("#updateButton").text().trim() == "Add") {
+        receiptAdd(Receipt);
+      }
+      else {
+        receiptUpdate(Receipt);
+      }
+    }
+
+    function addClick() {
+      formClear();
+    }
+
+    function receiptUpdate(receipt) {
+      $.ajax({
+        url: 'http://localhost:8080/receipt/' + receipt.id,
+        type: 'PUT',
+        contentType: "application/json;charset=utf-8",
+        data: JSON.stringify(receipt),
+        success: function () {
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        },
+        complete: function () { formClear(); receiptList(); }
+      });
+    }
+
+    function receiptUpdateSuccess(receipt) {
+      receiptUpdateInTable(receipt);
+    }
+
+    function receiptAdd(receipt) {
+      $.ajax({
+        url: 'http://localhost:8080/receipt',
+        type: 'POST',
+        contentType: "application/json;charset=utf-8",
+        data: JSON.stringify(receipt),
+        success: function (receipt) {
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        },
+        complete: function () { formClear(); receiptList(); }
+      });
+    }
+
+    function receiptUpdateInTable(receipt) {
+      var row = $("#receiptTable button[data-id='" + receipt.id + "']").parents("tr")[0];
+      $(row).after(receiptBuildTableRow(receipt));
+      $(row).remove();
+      formClear();
+      $("#updateButton").text("Add");
+    }
+
+    function receiptGet(ctl) {
+      var id = $(ctl).data("id");
+      $("#id").val(id);
+      $.ajax({
+        url: 'http://localhost:8080/receipt/' + id,
+        type: 'GET',
+        dataType: 'json',
+        success: function (receipt) {
+          receiptToFields(receipt);
+          $("#updateButton").text("Update");
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function receiptToFields(receipt) {
+      $("#name").val(receipt.name);
+      $("#createdDate").val(receipt.createdDate);
+      $('#vegetarian').prop('checked', receipt.vegetarian);      
+      $("#portion").val(receipt.portion);
+      var ins = $.map(receipt.instructions, function (obj) { return obj.content }).join(';');
+      var ing = $.map(receipt.ingredients, function (obj) { return obj.content }).join(';');
+      $("#ingredient").val(ing);
+      $("#instruction").val(ins);
+    }
+
+    let pageNum = 1;
+    function receiptList() {
+      $.ajax({
+        url: 'http://localhost:8080/receipt?pageNum='+ (pageNum-1) +"&pageSize=5",
+        type: 'GET',
+        dataType: 'json',
+        success: function (receipts) {
+          receiptListSuccess(receipts);
+          $("#previousButton").prop("disabled", (pageNum===1));        
+          $("#pageNum").val(pageNum);
+          $("#nextButton").prop("disabled", (receipts.length===0));
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        }
+      });
+    }
+
+    function nextClick(){
+      pageNum=pageNum+1
+      receiptList();
+    }
+    function previousClick(){
+      pageNum=pageNum-1
+      receiptList();
+    }
+
+    function receiptListSuccess(receipts) {
+      $('#receiptTable tbody').empty();
+      $.each(receipts, function (index, receipt) {
+        receiptAddRow(receipt);
+      });
+    }
+
+    function receiptAddRow(receipt) {
+      if ($("#receiptTable tbody").length == 0) {
+        $("#receiptTable").append("<tbody></tbody>");
+      }
+      $("#receiptTable tbody").append(
+        receiptBuildTableRow(receipt));
+    }
+
+    function receiptBuildTableRow(receipt) {
+
+      var ins = $.map(receipt.instructions, function (obj) { return obj.content }).join(';');
+      var ing = $.map(receipt.ingredients, function (obj) { return obj.content }).join(';');
+
+      var d = new Date(Date.parse(receipt.createdDate));
+      dformat = [d.getDate(), d.getMonth() + 1, d.getFullYear()].join('-') + ' ' + [d.getHours(), d.getMinutes()].join(':');
+
+      var ret = "<tr>" +
+        "<td>" +
+        "<button type='button' " + "onclick='receiptGet(this);' " + "class='btn btn-default' " + "data-id='" + receipt.id + "'>" + "<span class='glyphicon glyphicon-edit' />" + "</button>" +
+        "</td>" +
+        "<td>" + receipt.name + "</td>" +
+        "<td>" + dformat + "</td>" +        
+        (receipt.vegetarian ? 
+        "<td>" + "<input type='checkbox' class='form-check-input' disabled checked>"+"</td>" : 
+        "<td>" + "<input type='checkbox' class='form-check-input' disabled >"+"</td>" )+
+        "<td>" + receipt.portion + "</td>" +
+        "<td>" + ing + "</td>" +
+        "<td>" + ins + "</td>" +
+        "<td>" +
+        "<button type='button' " + "onclick='receiptDelete(this);' " + "class='btn btn-default' " + "data-id='" + receipt.id + "'>" +
+        "<span class='glyphicon glyphicon-remove' />" +
+        "</button>" +
+        "</td>" +
+        "</tr>";
+
+      return ret;
+    }
+
+    function receiptDelete(ctl) {
+      var id = $(ctl).data("id");
+      $.ajax({
+        url: 'http://localhost:8080/receipt/' + id,
+        type: 'DELETE',
+        success: function (receipt) {          
+        },
+        error: function (request, message, error) {
+          handleException(request, message, error);
+        },
+        complete: function () { formClear(); receiptList(); }        
+      });
+    }
+
+    function formClear() {
+      $("#id").val("");
+      $("#name").val("");
+      $("#vegetarian").val("");
+      $("#portion").val(0);
+      $("#ingredient").val("");
+      $("#instruction").val("");
+      $("#updateButton").text("Add");
+    }
+
+    function handleException(request, message, error) {
+      var msg = "";
+
+      msg += "Code: " + request.status + "\n";
+      msg += "Text: " + request.statusText + "\n";
+      if (request.responseJSON != null) {
+        msg += "Message" + request.responseJSON.Message + "\n";
+      }
+
+      alert(msg);
+    }
+  </script>
+</body>
+
+</html>
